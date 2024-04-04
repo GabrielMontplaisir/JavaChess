@@ -25,7 +25,7 @@ public final class Knight extends Piece {
 		possibleMoves.add(new Square(x-2,y-1));
 		possibleMoves.add(new Square(x-2,y+1));
 		
-		validateMoves(possibleMoves, x, y);
+		validateMoves(possibleMoves);
 		return this.validMoves;
 	}
 }

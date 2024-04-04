@@ -1,6 +1,7 @@
 package chess;
 
 import java.awt.Color;
+import java.util.HashSet;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -11,6 +12,7 @@ public class Square {
 	private final int x, y;
 	private Piece piece;
 	private final JButton btn = new JButton();
+	private HashSet<Piece> coveringPieces = new HashSet<Piece>();
 	private final Color originalBGColour;
 	private Color currentBGColour;
 	private final Color LIGHT_SQUARE = new Color(250, 250, 240);
@@ -36,6 +38,7 @@ public class Square {
 
 	public Piece getPiece() {return this.piece;}
 	public JButton getBtn() {return this.btn;}
+	public HashSet<Piece> getCoveringPieces() {return this.coveringPieces;}
 	public int getX() {return this.x;}
 	public int getY() {return this.y;}
 	public Color getOriginalBGColour() {return this.originalBGColour;}
@@ -49,7 +52,6 @@ public class Square {
 		this.piece = piece;
 		if (this.piece != null) {
 			this.btn.setIcon(new ImageIcon(piece.getImage()));
-			this.piece.findMoves(this);
 		} else {
 			this.btn.setIcon(null);
 		}

@@ -85,7 +85,7 @@ public final class Pawn extends Piece {
 	
 	// Reverse direction of piece movement
 	
-	public int moveDirection(int num) {
+	private int moveDirection(int num) {
 		if (moveTopDown) {return num * 1;}
 		return num * -1;
 	}
@@ -109,21 +109,27 @@ public final class Pawn extends Piece {
 		// Default possible moves
 		if (possibleX >= 0 && possibleX <= 7) {
 			if (Board.boardArray[possibleX][y].getPiece() == null) {possibleMoves.add(new Square(possibleX,y));}
-			if (isFirstMove() && Board.boardArray[possibleX][y].getPiece() == null) {possibleMoves.add(new Square(x+moveDirection(2),y));}
+			if (this.isFirstMove() && Board.boardArray[possibleX][y].getPiece() == null && Board.boardArray[x+moveDirection(2)][y].getPiece() == null) {possibleMoves.add(new Square(x+moveDirection(2),y));}
 
 			
 			// Check diagonals			
-			if (possibleNegY >= 0 && possibleNegY <= 7 && Board.boardArray[possibleX][possibleNegY].getPiece() != null) {possibleMoves.add(new Square(possibleX, possibleNegY));}
-			if (possiblePosY >= 0 && possiblePosY <= 7 && Board.boardArray[possibleX][possiblePosY].getPiece() != null) {possibleMoves.add(new Square(possibleX, possiblePosY));}
-			
-			// Check en passant
-			if ((!this.getTopDown() && x == 3) || (this.getTopDown() && x == 4)) {
-				if (possibleNegY >= 0 && possibleNegY <= 7) addEnPassantMove(possibleMoves, Board.boardArray[x][possibleNegY], possibleX, possibleNegY);
-				if (possiblePosY >= 0 && possiblePosY <= 7) addEnPassantMove(possibleMoves, Board.boardArray[x][possiblePosY], possibleX, possiblePosY);
-			} 
+			if (possibleNegY >= 0 && possibleNegY <= 7) {
+				Board.boardArray[possibleX][possibleNegY].getCoveringPieces().add(this);
+				if (Board.boardArray[possibleX][possibleNegY].getPiece() != null) {possibleMoves.add(new Square(possibleX, possibleNegY));}
+			}
+			if (possiblePosY >= 0 && possiblePosY <= 7) {
+				Board.boardArray[possibleX][possiblePosY].getCoveringPieces().add(this);
+				if (Board.boardArray[possibleX][possiblePosY].getPiece() != null) {possibleMoves.add(new Square(possibleX, possiblePosY));}
+			}
 		}
 		
-		validateMoves(possibleMoves, x, y);
+		// Check en passant
+		if ((!this.getTopDown() && x == 3) || (this.getTopDown() && x == 4)) {
+			if (possibleNegY >= 0 && possibleNegY <= 7) addEnPassantMove(possibleMoves, Board.boardArray[x][possibleNegY], possibleX, possibleNegY);
+			if (possiblePosY >= 0 && possiblePosY <= 7) addEnPassantMove(possibleMoves, Board.boardArray[x][possiblePosY], possibleX, possiblePosY);
+		} 
+		
+		validateMoves(possibleMoves);
 		return this.validMoves;
 	}
 }

@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,7 +23,6 @@ public class Player {
 	private boolean playerTurn = false;
 	private boolean kingChecked = false;
 	private Player opponent;
-	private ArrayDeque<Square> coveredSquares = new ArrayDeque<Square>();
 	private Square selection;
 	private int pointTotal;
 	
@@ -116,8 +114,6 @@ public class Player {
 		
 		// If new selection is a piece
 		if (this.selection.getPiece() != null && Main.getCurrentPlayer().isLightPieces() == this.selection.getPiece().getOwner().isLightPieces()) {
-			this.selection.getPiece().clearMoves();
-			this.selection.getPiece().findMoves(selection);
 			this.selection.getPiece().highlightMoves();				
 		}
 	}

@@ -56,7 +56,7 @@ public final class Queen extends Piece {
 			if (Board.boardArray[x][i].getPiece() != null) break;
 		}
 		
-		validateMoves(possibleMoves, x, y);
+		validateMoves(possibleMoves);
 		return this.validMoves;
 	}
 }

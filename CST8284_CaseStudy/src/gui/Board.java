@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.util.HashMap;
 
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -13,11 +14,13 @@ import chess.pieces.Bishop;
 import chess.pieces.King;
 import chess.pieces.Knight;
 import chess.pieces.Pawn;
+import chess.pieces.Piece;
 import chess.pieces.Queen;
 import chess.pieces.Rook;
 
 public class Board {
 	public final static Square[][] boardArray = new Square[8][8];
+	public final static HashMap<Piece, Square> pieces = new HashMap<Piece, Square>();
 	final JPanel boardGrid = new JPanel(new GridLayout(8, 8));
 	
 	public Board(final JPanel panel, final Player p1, final Player p2) {
@@ -27,6 +30,11 @@ public class Board {
 				boardArray[i][j] = new Square(i, j);
 				boardGrid.add(boardArray[i][j].getBtn());
 			}
+		}
+		
+		for (int i = 0; i < boardArray.length; i++) {
+			boardArray[1][i].setPiece(new Pawn(p2, true));
+			boardArray[6][i].setPiece(new Pawn(p1, false));
 		}
 		
 		// P2 Pieces
@@ -59,12 +67,21 @@ public class Board {
 		}
 		
 		for (int i = 0; i < boardArray.length; i++) {
-			boardArray[1][i].setPiece(new Pawn(p2, true));
-			boardArray[6][i].setPiece(new Pawn(p1, false));
+			for (int j = 0; j < boardArray[i].length; j++) {
+				if (boardArray[i][j].getPiece() != null) pieces.put(boardArray[i][j].getPiece(), boardArray[i][j]);
+			}
 		}
 		
-//		PieceSelector pieceSelector = new PieceSelector(panel, p1);
+		refreshMoves();
+		
 		boardGrid.setBorder(new EmptyBorder(15, 0, 5, 0));
 		panel.add(boardGrid, BorderLayout.LINE_START);
+	}
+	
+	public static void refreshMoves() {
+		for (Piece piece : pieces.keySet()) {
+			piece.clearMoves();
+			piece.findMoves(pieces.get(piece));
+		}
 	}
 }

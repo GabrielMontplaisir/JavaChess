@@ -57,7 +57,8 @@ public class Move {
 				
 				this.setRankAndFile(this.special, "="+((Pawn)this.last.getPiece()).getPromotionPiece().getName());
 				this.last.getPiece().getOwner().calculatePoints(((Pawn) this.last.getPiece()).getPromotionPiece().getPointValue());
-				
+				Board.pieces.remove(this.last.getPiece());
+				Board.pieces.put(((Pawn) this.last.getPiece()).getPromotionPiece(), this.last);
 				finishMove(((Pawn) this.last.getPiece()).getPromotionPiece());
 				return;
 			}
@@ -83,19 +84,22 @@ public class Move {
 		
 		// If this is a king
 		if (this.last.getPiece() instanceof King) {
-			if (((King) this.last.getPiece()).castlePossible() && ((King) this.last.getPiece()).getCastlingRook().getPiece().isFirstMove()) {
-				if (this.last.getY() < this.current.getY()) {
-					System.out.println(((King) this.last.getPiece()).getCastlingRook().getPiece());
-					Board.boardArray[this.current.getX()][this.current.getY()-1].setPiece(((King) this.last.getPiece()).getCastlingRook().getPiece());
-					this.coord = (Main.boardReversed) ? "O-O" : "O-O-O";
-				} else if (this.last.getY() > this.current.getY()) {
-					System.out.println(((King) this.last.getPiece()).getCastlingRook().getPiece());
-					Board.boardArray[this.current.getX()][this.current.getY()+1].setPiece(((King) this.last.getPiece()).getCastlingRook().getPiece());
-					this.coord = (Main.boardReversed) ? "O-O-O" : "O-O";
-				}
-				((King) this.last.getPiece()).getCastlingRook().setPiece(null);
-				((King) this.last.getPiece()).notCastlingMove();
+			this.last.getPiece().getOwner().setChecked(false);
+			// If it's a left castling move			
+			if (((King) this.last.getPiece()).leftCastlePossible() && this.last.getY()-this.current.getY() == 2) {
+				Board.boardArray[this.current.getX()][this.current.getY()+1].setPiece(((King) this.last.getPiece()).getLeftCastlingRook().getPiece());
+				Board.pieces.replace(((King) this.last.getPiece()).getLeftCastlingRook().getPiece(), Board.boardArray[this.current.getX()][this.current.getY()+1]);
+				this.coord = (Main.boardReversed) ? "O-O-O" : "O-O";
+				((King) this.last.getPiece()).getLeftCastlingRook().setPiece(null);
+			
+			// If it's a right castling move
+			} else if (((King) this.last.getPiece()).rightCastlePossible() && this.last.getY()-this.current.getY() == -2) {
+				Board.boardArray[this.current.getX()][this.current.getY()-1].setPiece(((King) this.last.getPiece()).getRightCastlingRook().getPiece());
+				Board.pieces.replace(((King) this.last.getPiece()).getRightCastlingRook().getPiece(), Board.boardArray[this.current.getX()][this.current.getY()-1]);
+				this.coord = (Main.boardReversed) ? "O-O" : "O-O-O";
+				((King) this.last.getPiece()).getRightCastlingRook().setPiece(null);
 			}
+			((King) this.last.getPiece()).notCastlingMove();
 		}
 		
 		finishMove(this.last.getPiece());
@@ -127,18 +131,23 @@ public class Move {
 	}
 	
 	private void finishMove(Piece piece) {
+		Main.setLastMove(this);
 		this.current.setPiece(piece);
-		this.moveLabel.setText(this.coord);
+		this.last.setPiece(null);
 		
+		Board.pieces.replace(this.current.getPiece(), this.current);
+		Board.refreshMoves();
+		
+		
+		// If the piece attacks the king, then set the king in check.
 		this.current.getPiece().getValidMoves().forEach(sq -> {
 			if (sq.getPiece() != null && sq.getPiece().getOwner().isLightPieces() != this.current.getPiece().getOwner().isLightPieces() && sq.getPiece() instanceof King) {
 				sq.getPiece().getOwner().setChecked(true);
+				this.coord += "+";
 			}
 		});
 		
-		this.last.getPiece().clearMoves();
-		Main.setLastMove(this);
-		this.last.setPiece(null);
+		this.moveLabel.setText(this.coord);
 		
 		Main.swapTurns();
 		

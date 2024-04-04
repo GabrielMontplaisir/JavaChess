@@ -39,7 +39,7 @@ public final class Bishop extends Piece {
 				}
 		}
 		
-		validateMoves(possibleMoves, x, y);
+		validateMoves(possibleMoves);
 		return this.validMoves;
 	}
 }
