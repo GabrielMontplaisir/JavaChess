@@ -1,7 +1,5 @@
 package chess.pieces;
 
-import java.util.ArrayDeque;
-
 import chess.Player;
 import chess.Square;
 import gui.Board;
@@ -11,52 +9,53 @@ public final class Queen extends Piece {
 		super(owner, 9, "Q");
 	}
 	
-	public ArrayDeque<Square> findMoves(Square current) {
-		ArrayDeque<Square> possibleMoves = new ArrayDeque<Square>();
+	public void findMoves(Square current) {
 		int x = current.getX();
 		int y = current.getY();
-		boolean diag1 = false;
-		boolean diag2 = false;
-		boolean diag3 = false;
-		boolean diag4 = false;
+		Square sq;
 		
 		for (int i = 1; i <= 7; i++) {
-			if (!diag1 && x+i <=7 && y+i <= 7) {
-				if (Board.boardArray[x+i][y+i].getPiece() != null) diag1 = true;
-				possibleMoves.add(new Square(x+i,y+i));
+			if (x+i <=7 && y+i <= 7) {
+				sq = Board.boardArray[x+i][y+i];
+				this.southEastMoves.add(sq);
 			}
-			if (!diag2  && x+i <=7 && y-i >= 0) {
-				if (Board.boardArray[x+i][y-i].getPiece() != null) diag2 = true;
-				possibleMoves.add(new Square(x+i,y-i));
+			
+			if (x+i <=7 && y-i >= 0) {
+				sq = Board.boardArray[x+i][y-i];
+				this.southWestMoves.add(sq);
 			}
-			if (!diag3 && x-i >=0 && y+i <= 7) {
-				if (Board.boardArray[x-i][y+i].getPiece() != null) diag3 = true;
-				possibleMoves.add(new Square(x-i,y+i));
+			if (x-i >=0 && y+i <= 7) {
+				sq = Board.boardArray[x-i][y+i];
+				this.northEastMoves.add(sq);
 			}
-			if (!diag4 && x-i >=0 && y-i >= 0) {
-				if (Board.boardArray[x-i][y-i].getPiece() != null) diag4 = true;
-				possibleMoves.add(new Square(x-i,y-i));
+			if (x-i >=0 && y-i >= 0) {
+				sq = Board.boardArray[x-i][y-i];
+				this.northWestMoves.add(sq);
 			}
 		}
 		
 		for (int i = x+1; i <= 7; i++) {
-			possibleMoves.add(new Square(i,y));
-			if (Board.boardArray[i][y].getPiece() != null) break;
+			this.southMoves.add(Board.boardArray[i][y]);
 		}
 		for (int i = x-1; i >= 0; i--) {
-			possibleMoves.add(new Square(i,y));
-			if (Board.boardArray[i][y].getPiece() != null) break;
+			this.northMoves.add(Board.boardArray[i][y]);
 		}
 		for (int i = y+1; i <= 7; i++) {
-			possibleMoves.add(new Square(x,i));
-			if (Board.boardArray[x][i].getPiece() != null) break;
+			this.eastMoves.add(Board.boardArray[x][i]);
 		}
 		for (int i = y-1; i >= 0; i--) {
-			possibleMoves.add(new Square(x,i));
-			if (Board.boardArray[x][i].getPiece() != null) break;
+			this.westMoves.add(Board.boardArray[x][i]);
 		}
 		
-		validateMoves(possibleMoves);
-		return this.validMoves;
+		this.getPossibleMoves().add(this.southWestMoves);
+		this.getPossibleMoves().add(this.southEastMoves);
+		this.getPossibleMoves().add(this.northEastMoves);
+		this.getPossibleMoves().add(this.northWestMoves);
+		this.getPossibleMoves().add(this.eastMoves);
+		this.getPossibleMoves().add(this.westMoves);
+		this.getPossibleMoves().add(this.northMoves);
+		this.getPossibleMoves().add(this.southMoves);
+		
+		validateMoves(this.getPossibleMoves());
 	}
 }

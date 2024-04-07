@@ -73,6 +73,7 @@ public class Main {
 		currentPlayer.getOpponent().setPlayerTurn(true);
 		currentPlayer.setPlayerTurn(false);
 		setCurrentPlayer(currentPlayer.getOpponent());
+		currentPlayer.refreshMoves();
 	}
 	
 //	TODO: Create a title screen for game

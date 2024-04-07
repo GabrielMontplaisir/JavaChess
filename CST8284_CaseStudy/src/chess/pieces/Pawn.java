@@ -23,6 +23,7 @@ public final class Pawn extends Piece {
 	
 	
 	private boolean moveTopDown;
+	private Square leftDiag, rightDiag;
 	private boolean secondMove = false;	
 	private Square enPassantPiece;
 	
@@ -71,6 +72,8 @@ public final class Pawn extends Piece {
 	
 	public boolean isSecondMove() {return this.secondMove;}
 	public boolean getTopDown() {return this.moveTopDown;}
+	public Square getLeftDiag() {return this.leftDiag;}
+	public Square getRightDiag() {return this.rightDiag;}
 	public Piece getPromotionPiece() {return this.promotionPiece;}
 	public Object[] getPromotionOptions() {return this.promotionOptions;}
 	public Square getEnPassant() {return this.enPassantPiece;}
@@ -93,43 +96,46 @@ public final class Pawn extends Piece {
 	// Used to check En Passant moves.
 	private void addEnPassantMove(ArrayDeque<Square> array, Square item, int x, int y) {
 		if (item.getPiece() != null && item.getPiece() instanceof Pawn && item.getPiece().getOwner().isLightPieces() != this.getOwner().isLightPieces() && Main.getLastMove().getCurrent().getPiece() == item.getPiece() && ((Pawn) item.getPiece()).isSecondMove()) {
-			array.add(new Square(x, y));
+			array.add(Board.boardArray[x][y]);
 			setEnPassant(item);
 		}
 	}
 
-	public ArrayDeque<Square> findMoves(Square current) {
-		ArrayDeque<Square> possibleMoves = new ArrayDeque<Square>();
+	public void findMoves(Square current) {
+		ArrayDeque<Square> tempMoves = new ArrayDeque<Square>();
 		int x = current.getX();
 		int y = current.getY();
-		int possibleNegY = y-moveDirection(1);
-		int possiblePosY = y+moveDirection(1);
+		int possibleNegY = y-1;
+		int possiblePosY = y+1;
 		int possibleX = x+moveDirection(1);
 		
 		// Default possible moves
 		if (possibleX >= 0 && possibleX <= 7) {
-			if (Board.boardArray[possibleX][y].getPiece() == null) {possibleMoves.add(new Square(possibleX,y));}
-			if (this.isFirstMove() && Board.boardArray[possibleX][y].getPiece() == null && Board.boardArray[x+moveDirection(2)][y].getPiece() == null) {possibleMoves.add(new Square(x+moveDirection(2),y));}
+			if (Board.boardArray[possibleX][y].getPiece() == null) {tempMoves.add(Board.boardArray[possibleX][y]);}
+			if (this.isFirstMove() && Board.boardArray[possibleX][y].getPiece() == null && Board.boardArray[x+moveDirection(2)][y].getPiece() == null) {tempMoves.add(Board.boardArray[x+moveDirection(2)][y]);}
 
 			
 			// Check diagonals			
-			if (possibleNegY >= 0 && possibleNegY <= 7) {
-				Board.boardArray[possibleX][possibleNegY].getCoveringPieces().add(this);
-				if (Board.boardArray[possibleX][possibleNegY].getPiece() != null) {possibleMoves.add(new Square(possibleX, possibleNegY));}
+			if (possibleNegY >= 0) {
+				this.leftDiag = Board.boardArray[possibleX][possibleNegY];
+				this.getCoveringSquares().add(this.leftDiag);
+				if (this.leftDiag.getPiece() != null) {tempMoves.add(this.leftDiag);}
 			}
-			if (possiblePosY >= 0 && possiblePosY <= 7) {
-				Board.boardArray[possibleX][possiblePosY].getCoveringPieces().add(this);
-				if (Board.boardArray[possibleX][possiblePosY].getPiece() != null) {possibleMoves.add(new Square(possibleX, possiblePosY));}
+			if (possiblePosY <= 7) {
+				this.rightDiag = Board.boardArray[possibleX][possiblePosY];
+				this.getCoveringSquares().add(this.rightDiag);
+				if (this.rightDiag.getPiece() != null) {tempMoves.add(this.rightDiag);}
 			}
 		}
 		
 		// Check en passant
 		if ((!this.getTopDown() && x == 3) || (this.getTopDown() && x == 4)) {
-			if (possibleNegY >= 0 && possibleNegY <= 7) addEnPassantMove(possibleMoves, Board.boardArray[x][possibleNegY], possibleX, possibleNegY);
-			if (possiblePosY >= 0 && possiblePosY <= 7) addEnPassantMove(possibleMoves, Board.boardArray[x][possiblePosY], possibleX, possiblePosY);
+			if (possibleNegY >= 0 && possibleNegY <= 7) addEnPassantMove(tempMoves, Board.boardArray[x][possibleNegY], possibleX, possibleNegY);
+			if (possiblePosY >= 0 && possiblePosY <= 7) addEnPassantMove(tempMoves, Board.boardArray[x][possiblePosY], possibleX, possiblePosY);
 		} 
 		
-		validateMoves(possibleMoves);
-		return this.validMoves;
+		this.getPossibleMoves().add(tempMoves);
+		
+		validateMoves(this.getPossibleMoves());
 	}
 }

@@ -1,7 +1,5 @@
 package chess.pieces;
 
-import java.util.ArrayDeque;
-
 import chess.Player;
 import chess.Square;
 import gui.Board;
@@ -11,35 +9,36 @@ public final class Bishop extends Piece {
 		super(owner, 3, "B");
 	}
 	
-	public ArrayDeque<Square> findMoves(Square current) {
-		ArrayDeque<Square> possibleMoves = new ArrayDeque<Square>();
+	public void findMoves(Square current) {
 		int x = current.getX();
 		int y = current.getY();
-		boolean diag1 = false;
-		boolean diag2 = false;
-		boolean diag3 = false;
-		boolean diag4 = false;
+		Square sq;
 		
 		for (int i = 1; i <= 7; i++) {
-				if (!diag1 && x+i <=7 && y+i <= 7) {
-					if (Board.boardArray[x+i][y+i].getPiece() != null) diag1 = true;
-					possibleMoves.add(new Square(x+i,y+i));
-				}
-				if (!diag2  && x+i <=7 && y-i >= 0) {
-					if (Board.boardArray[x+i][y-i].getPiece() != null) diag2 = true;
-					possibleMoves.add(new Square(x+i,y-i));
-				}
-				if (!diag3 && x-i >=0 && y+i <= 7) {
-					if (Board.boardArray[x-i][y+i].getPiece() != null) diag3 = true;
-					possibleMoves.add(new Square(x-i,y+i));
-				}
-				if (!diag4 && x-i >=0 && y-i >= 0) {
-					if (Board.boardArray[x-i][y-i].getPiece() != null) diag4 = true;
-					possibleMoves.add(new Square(x-i,y-i));
-				}
+			if (x+i <=7 && y+i <= 7) {
+				sq = Board.boardArray[x+i][y+i];
+				this.southEastMoves.add(sq);
+			}
+			
+			if (x+i <=7 && y-i >= 0) {
+				sq = Board.boardArray[x+i][y-i];
+				this.southWestMoves.add(sq);
+			}
+			if (x-i >=0 && y+i <= 7) {
+				sq = Board.boardArray[x-i][y+i];
+				this.northEastMoves.add(sq);
+			}
+			if (x-i >=0 && y-i >= 0) {
+				sq = Board.boardArray[x-i][y-i];
+				this.northWestMoves.add(sq);
+			}
 		}
 		
-		validateMoves(possibleMoves);
-		return this.validMoves;
+		this.getPossibleMoves().add(this.southEastMoves);
+		this.getPossibleMoves().add(this.southWestMoves);
+		this.getPossibleMoves().add(this.northEastMoves);
+		this.getPossibleMoves().add(this.northWestMoves);
+		
+		validateMoves(this.getPossibleMoves());
 	}
 }

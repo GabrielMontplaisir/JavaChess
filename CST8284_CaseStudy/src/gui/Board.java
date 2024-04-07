@@ -2,7 +2,6 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.util.HashMap;
 
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -14,13 +13,11 @@ import chess.pieces.Bishop;
 import chess.pieces.King;
 import chess.pieces.Knight;
 import chess.pieces.Pawn;
-import chess.pieces.Piece;
 import chess.pieces.Queen;
 import chess.pieces.Rook;
 
 public class Board {
 	public final static Square[][] boardArray = new Square[8][8];
-	public final static HashMap<Piece, Square> pieces = new HashMap<Piece, Square>();
 	final JPanel boardGrid = new JPanel(new GridLayout(8, 8));
 	
 	public Board(final JPanel panel, final Player p1, final Player p2) {
@@ -67,21 +64,16 @@ public class Board {
 		}
 		
 		for (int i = 0; i < boardArray.length; i++) {
-			for (int j = 0; j < boardArray[i].length; j++) {
-				if (boardArray[i][j].getPiece() != null) pieces.put(boardArray[i][j].getPiece(), boardArray[i][j]);
-			}
+			p1.getPlayerPieces().put(boardArray[6][i].getPiece(), boardArray[6][i]); // Add pawns
+			p1.getPlayerPieces().put(boardArray[7][i].getPiece(), boardArray[7][i]); // Add pieces
+			p2.getPlayerPieces().put(boardArray[1][i].getPiece(), boardArray[1][i]); // Add pawns
+			p2.getPlayerPieces().put(boardArray[0][i].getPiece(), boardArray[0][i]); // Add pieces
 		}
 		
-		refreshMoves();
+		p1.refreshMoves();
+		p2.refreshMoves();
 		
 		boardGrid.setBorder(new EmptyBorder(15, 0, 5, 0));
 		panel.add(boardGrid, BorderLayout.LINE_START);
-	}
-	
-	public static void refreshMoves() {
-		for (Piece piece : pieces.keySet()) {
-			piece.clearMoves();
-			piece.findMoves(pieces.get(piece));
-		}
 	}
 }
