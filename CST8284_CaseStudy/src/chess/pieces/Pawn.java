@@ -95,7 +95,7 @@ public final class Pawn extends Piece {
 	
 	// Used to check En Passant moves.
 	private void addEnPassantMove(ArrayDeque<Square> array, Square item, int x, int y) {
-		if (item.getPiece() != null && item.getPiece() instanceof Pawn && item.getPiece().getOwner().isLightPieces() != this.getOwner().isLightPieces() && Main.getLastMove().getCurrent().getPiece() == item.getPiece() && ((Pawn) item.getPiece()).isSecondMove()) {
+		if (item.getPiece() != null && item.getPiece() instanceof Pawn && item.getPiece().getOwner().isLightPieces() != this.getOwner().isLightPieces() && getMovePanel().getLastMove().getCurrent().getPiece() == item.getPiece() && ((Pawn) item.getPiece()).isSecondMove()) {
 			array.add(Board.boardArray[x][y]);
 			setEnPassant(item);
 		}

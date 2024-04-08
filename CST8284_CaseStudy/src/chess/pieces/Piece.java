@@ -75,7 +75,7 @@ public abstract class Piece {
 	public void setCaptured(Piece piece, boolean isCaptured) {
 		this.isCaptured = isCaptured;
 		Main.getCurrentPlayer().calculatePoints(this.pointValue);
-		Main.getCurrentPlayer().getCapturedPiecesArea().add(new JLabel(new ImageIcon(piece.image.getScaledInstance(20, 20, Image.SCALE_DEFAULT))));
+		Main.getCurrentPlayer().getPlayerBox().getCapturedPiecesArea().add(new JLabel(new ImageIcon(piece.image.getScaledInstance(20, 20, Image.SCALE_DEFAULT))));
 		this.getOwner().getPlayerPieces().remove(this);
 		this.getOwner().getCoveredLines().remove(this);
 	}
@@ -110,43 +110,21 @@ public abstract class Piece {
 	
 /*
  * CHECK IF LINE CONTAINS OPPONENT KING
- * If it does, we'll store it for later to check if a player can move a piece without checking their own King.
+ * If it does, iterate through it to only get the line from the piece to the King. Store it for later to check if a player can move a piece without checking their own King.
  */
 	
 	private void lineContainsKing(ArrayDeque<Square> possible) {
 	
 		Optional<Square> opponentKingSquare = possible.stream().filter(sq -> sq.getPiece() instanceof King && sq.getPiece().getOwner().isLightPieces() != this.getOwner().isLightPieces()).findFirst();
 		if (opponentKingSquare.isPresent()) {
-			this.getOwner().getCoveredLines().put(this, possible);
-		}
-	}
-	
-/*
- * CHECK IF PIECE WOULD TRIGGER A CHECK
- */
-	
-	private void isLegalMove() {
-		if (this instanceof King || this.getOwner().getOpponent().getCoveredLines().isEmpty() || this.getOwner().getOpponent().getCoveredLines() == null) return;
-		
-		ArrayDeque<Square> temp = new ArrayDeque<Square>();
-		Square currentSquare = this.getOwner().getPlayerPieces().get(this);
-		int count = 0;
-		
-		// Find the line with the current square		
-		for (ArrayDeque<Square> squares : this.getOwner().getOpponent().getCoveredLines().values()) {
-			if (squares.contains(currentSquare) && currentSquare.getPiece().equals(this)) {
-				temp.addAll(squares);
-				break;
+			ArrayDeque<Square> temp = new ArrayDeque<Square>();
+			for (Square sq : possible) {
+				temp.add(sq);
+				if (sq.equals(opponentKingSquare.get())) break;
 			}
+			temp.add(this.getOwner().getPlayerPieces().get(this));
+			this.getOwner().getCoveredLines().put(this, temp);
 		}
-		
-		if (temp.isEmpty() || !temp.contains(currentSquare)) return;
-		
-		for (Square sq : temp) {
-			if (sq.getPiece() != null && sq.getPiece().getOwner().isLightPieces() == this.getOwner().isLightPieces()) count++;
-		}
-		
-		if (count <= 2) this.validSquares.retainAll(temp);
 	}
 	
 /*
@@ -183,9 +161,40 @@ public abstract class Piece {
 				
 		for (Square sq : possible) {
 			if (!hitPiece && (sq.getPiece() == null || sq.getPiece().getOwner().isLightPieces() != this.getOwner().isLightPieces())) this.validSquares.add(sq);
-			if (sq.getPiece() != null && !(this instanceof Knight)) hitPiece = true;
+			if (sq.getPiece() != null && !(this instanceof Knight) && !(this instanceof Pawn)) hitPiece = true;
 		}
 	}
+	
+/*
+ * CHECK IF PIECE WOULD TRIGGER A CHECK
+ */
+		
+	private void isLegalMove() {
+		if (this instanceof King || this.getOwner().getOpponent().getCoveredLines().isEmpty() || this.getOwner().getOpponent().getCoveredLines() == null) return;
+		
+		ArrayDeque<Square> temp = new ArrayDeque<Square>();
+		Square currentSquare = this.getOwner().getPlayerPieces().get(this);
+		int count = 0;
+		
+		// Find the line with the current square		
+		for (ArrayDeque<Square> squares : this.getOwner().getOpponent().getCoveredLines().values()) {
+			if (squares.contains(currentSquare) && currentSquare.getPiece().equals(this)) {
+				temp.addAll(squares);
+				break;
+			}
+		}
+		
+		if (temp.isEmpty() || !temp.contains(currentSquare)) return;
+		
+		for (Square sq : temp) {
+//				if (sq.getPiece() != null && sq.getPiece().getOwner().isLightPieces() == this.getOwner().isLightPieces()) count++;
+			if (sq.getPiece() != null) count++;
+		}
+		
+		if (count <= 3) this.validSquares.retainAll(temp);
+	}
+	
+	
 	
 /*
  *  FILTER KING MOVES
@@ -227,10 +236,14 @@ public abstract class Piece {
 			this.getOwner().getAttackingPieces().get(p).forEach(sq -> {
 				if (p.getValidSquares().contains(sq)) {
 					temp.add(sq);
-					temp.add(this.getOwner().getOpponent().getPlayerPieces().get(p));
+					if (this.getOwner().getAttackingPieces().size() < 2) temp.add(this.getOwner().getOpponent().getPlayerPieces().get(p));
 				}
 			});
-			this.validSquares.retainAll(temp);
+			if (this.getOwner().getAttackingPieces().size() < 2) {
+				this.validSquares.retainAll(temp);
+			} else {
+				this.validSquares.clear();
+			}
 		}
 	}
 	

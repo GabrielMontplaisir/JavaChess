@@ -6,7 +6,6 @@ import java.awt.GridLayout;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import chess.Main;
 import chess.Player;
 import chess.Square;
 import chess.pieces.Bishop;
@@ -17,11 +16,14 @@ import chess.pieces.Queen;
 import chess.pieces.Rook;
 
 public class Board {
-	public final static Square[][] boardArray = new Square[8][8];
-	final JPanel boardGrid = new JPanel(new GridLayout(8, 8));
+	private final static Square[][] boardArray = new Square[8][8];
 	
-	public Board(final JPanel panel, final Player p1, final Player p2) {
+// =================================== CONSTRUCTOR ===================================
+	
+	public Board(final JPanel panel) {
+		final JPanel boardGrid = new JPanel(new GridLayout(8, 8));
 		
+		// Sets up an 8x8 grid of Squares.
 		for (int i = 0; i < boardArray.length; i++) {
 			for (int j = 0; j < boardArray[i].length; j++) {
 				boardArray[i][j] = new Square(i, j);
@@ -29,51 +31,73 @@ public class Board {
 			}
 		}
 		
-		for (int i = 0; i < boardArray.length; i++) {
-			boardArray[1][i].setPiece(new Pawn(p2, true));
-			boardArray[6][i].setPiece(new Pawn(p1, false));
-		}
-		
-		// P2 Pieces
-		boardArray[0][0].setPiece(new Rook(p2));
-		boardArray[0][1].setPiece(new Knight(p2));
-		boardArray[0][2].setPiece(new Bishop(p2));
-		boardArray[0][5].setPiece(new Bishop(p2));
-		boardArray[0][6].setPiece(new Knight(p2));
-		boardArray[0][7].setPiece(new Rook(p2));
-		
-		// P1 Pieces		
-		boardArray[7][0].setPiece(new Rook(p1));
-		boardArray[7][1].setPiece(new Knight(p1));
-		boardArray[7][2].setPiece(new Bishop(p1));
-		boardArray[7][5].setPiece(new Bishop(p1));
-		boardArray[7][6].setPiece(new Knight(p1));
-		boardArray[7][7].setPiece(new Rook(p1));
-		
-		// If dark pieces are on bottom		
-		if (Main.boardReversed) {
-			boardArray[0][4].setPiece(new King(p2));	
-			boardArray[0][3].setPiece(new Queen(p2));
-			boardArray[7][4].setPiece(new King(p1));
-			boardArray[7][3].setPiece(new Queen(p1));
-		} else {
-			boardArray[0][3].setPiece(new King(p2));
-			boardArray[0][4].setPiece(new Queen(p2));
-			boardArray[7][3].setPiece(new King(p1));
-			boardArray[7][4].setPiece(new Queen(p1));
-		}
-		
-		for (int i = 0; i < boardArray.length; i++) {
-			p1.getPlayerPieces().put(boardArray[6][i].getPiece(), boardArray[6][i]); // Add pawns
-			p1.getPlayerPieces().put(boardArray[7][i].getPiece(), boardArray[7][i]); // Add pieces
-			p2.getPlayerPieces().put(boardArray[1][i].getPiece(), boardArray[1][i]); // Add pawns
-			p2.getPlayerPieces().put(boardArray[0][i].getPiece(), boardArray[0][i]); // Add pieces
-		}
-		
-		p1.refreshMoves();
-		p2.refreshMoves();
-		
 		boardGrid.setBorder(new EmptyBorder(15, 0, 5, 0));
 		panel.add(boardGrid, BorderLayout.LINE_START);
+	}
+	
+// =================================== GETTER METHODS ===================================
+	
+	public static Square getSquare(int x, int y) {return boardArray[x][y];}
+	
+	
+// =================================== OTHER METHODS ===================================
+	
+/*
+ * RESETS THE BOARD
+ * Removes all pieces from the board and resets player pieces
+ */
+	
+	public void resetBoard(final Player p1, final Player p2, boolean isBoardReversed) {
+		
+		// 
+		for (int i = 0; i < boardArray.length; i++) {
+			for (int j = 0; j < boardArray[i].length; j++) {
+				boardArray[i][j].setPiece(null);
+			}
+		}
+		
+		// Set up pieces for each player.
+		this.setupBoard(p2, isBoardReversed, 1, 0);
+		this.setupBoard(p1, isBoardReversed, 6, 7);
+	}
+		
+	
+	private void setupBoard(final Player player, boolean isBoardReversed, int pawnX, int pieceX) {
+		
+		// Removes all pieces from the player
+		player.getPlayerPieces().clear();
+		
+		// Add pawns
+		for (int i = 0; i < boardArray.length; i++) {
+			boardArray[pawnX][i].setPiece(new Pawn(player, true));
+		}
+		
+		// Add pieces
+		boardArray[pieceX][0].setPiece(new Rook(player));
+		boardArray[pieceX][1].setPiece(new Knight(player));
+		boardArray[pieceX][2].setPiece(new Bishop(player));
+		boardArray[pieceX][5].setPiece(new Bishop(player));
+		boardArray[pieceX][6].setPiece(new Knight(player));
+		boardArray[pieceX][7].setPiece(new Rook(player));
+		
+		// Flip King and Queen position if board is reversed.
+		// If board is reversed, then dark pieces are on the bottom.
+		if (isBoardReversed) {
+			boardArray[pieceX][4].setPiece(new King(player));	
+			boardArray[pieceX][3].setPiece(new Queen(player));
+		} else {
+			boardArray[pieceX][3].setPiece(new King(player));
+			boardArray[pieceX][4].setPiece(new Queen(player));
+		}
+		
+		// Add pieces to Player Pieces.
+		for (int i = 0; i < boardArray.length; i++) {
+			player.getPlayerPieces().put(boardArray[pawnX][i].getPiece(), boardArray[pawnX][i]); // Add pawns
+			player.getPlayerPieces().put(boardArray[pieceX][i].getPiece(), boardArray[pieceX][i]); // Add pieces
+		}
+		
+		// Refresh the player's moves.
+		player.refreshMoves();
+
 	}
 }

@@ -6,12 +6,12 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 public class Menu {
-	final JMenuBar mainMenu = new JMenuBar();
-	final JMenu fileMenu = new JMenu("File");
-	final JMenuItem newGame = new JMenuItem("New Game");
-	final JMenuItem open = new JMenuItem("Open");
-	final JMenuItem save = new JMenuItem("Save");
-	final JMenuItem exit = new JMenuItem("Exit");
+	private final JMenuBar mainMenu = new JMenuBar();
+	private final JMenu fileMenu = new JMenu("File");
+	private final JMenuItem newGame = new JMenuItem("New Game");
+	private final JMenuItem open = new JMenuItem("Open");
+	private final JMenuItem save = new JMenuItem("Save");
+	private final JMenuItem exit = new JMenuItem("Exit");
 	
 	public Menu(JFrame frame) {
 		
