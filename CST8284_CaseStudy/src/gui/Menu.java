@@ -5,6 +5,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
+import chess.Main;
+
 public class Menu {
 	private final JMenuBar mainMenu = new JMenuBar();
 	private final JMenu fileMenu = new JMenu("File");
@@ -12,6 +14,8 @@ public class Menu {
 	private final JMenuItem open = new JMenuItem("Open");
 	private final JMenuItem save = new JMenuItem("Save");
 	private final JMenuItem exit = new JMenuItem("Exit");
+	
+// =================================== CONSTRUCTOR ===================================
 	
 	public Menu(JFrame frame) {
 		
@@ -25,7 +29,7 @@ public class Menu {
 		
 		// newGame Button clicked
 		newGame.addActionListener(event -> {
-			System.out.println("Clicked newGame.");
+			Main.setupGame(Main.getBoard());
 		});
 		
 		open.addActionListener(event -> {

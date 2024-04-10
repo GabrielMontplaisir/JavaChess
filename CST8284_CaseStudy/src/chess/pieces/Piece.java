@@ -12,6 +12,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import chess.Main;
+import chess.Move;
 import chess.Player;
 import chess.Square;
 
@@ -28,7 +29,8 @@ public abstract class Piece {
 	private Image image;
 	private String name;
 	
-	// HashSets of possible moves	
+// =================================== POSSIBLE MOVE LINES DEQUES ===================================
+	
 	protected final ArrayDeque<Square> northMoves = new ArrayDeque<Square>();
 	protected final ArrayDeque<Square> northEastMoves = new ArrayDeque<Square>();
 	protected final ArrayDeque<Square> eastMoves = new ArrayDeque<Square>();
@@ -38,7 +40,7 @@ public abstract class Piece {
 	protected final ArrayDeque<Square> westMoves = new ArrayDeque<Square>();
 	protected final ArrayDeque<Square> northWestMoves = new ArrayDeque<Square>();
 	
-	// Constructor	
+// =================================== CONSTRUCTOR ===================================
 	
 	Piece(final Player owner, final int pointValue, final String name) {
 		this.owner = owner;
@@ -60,7 +62,7 @@ public abstract class Piece {
 		
 	}
 	
-	// Getter Methods	
+// =================================== GETTER METHODS ===================================	
 	
 	public Player getOwner() {return this.owner;}
 	public boolean isFirstMove() {return this.firstMove;}
@@ -71,6 +73,8 @@ public abstract class Piece {
 	public ArrayDeque<Square> getCoveringSquares() {return this.coveringSquares;}
 	public ArrayDeque<ArrayDeque<Square>> getPossibleMoves() {return this.possibleMoves;}
 	public int getPointValue() {return this.pointValue;}
+	
+// =================================== SETTER METHODS ===================================
 	
 	public void setCaptured(Piece piece, boolean isCaptured) {
 		this.isCaptured = isCaptured;
@@ -83,6 +87,55 @@ public abstract class Piece {
 	public void notFirstMove() {
 		this.firstMove = false;
 	}
+	
+// =================================== ABSTRACT METHOD ===================================
+	
+	public abstract void findMoves(Square current);
+	
+// =================================== HANDLER METHODS ===================================
+	
+/*
+ * Set to false after the piece's first move.
+ * @Override in Pawn class.
+ * 
+ */
+	public void handleFirstMove() {
+		if (this.isFirstMove()) this.notFirstMove();
+	}
+	
+/*
+ * HANDLE PIECE CAPTURE.
+ * If piece is captured, then set the algebraic notation and capture the piece.
+ * Checks if piece is existent and belongs to opponent.
+ * @Override in Pawn class
+ */
+	
+	public void handleCapture(Move move) {
+		if (move.getCurrentPiece() != null && this.isOpponentPiece(move.getCurrent())) {
+			move.getCurrentPiece().setCaptured(move.getCurrentPiece(), true);
+			move.setSpecial("x");
+		}
+	}
+	
+// =================================== MAIN VALIDATION METHOD ===================================
+
+/*
+ * Every turn, we validate the piece moves using the method below. Each connect to a separate method as described above.
+ */
+	
+	public void validateMoves(ArrayDeque<ArrayDeque<Square>> array) {
+		array.forEach(arr -> {
+			this.lineContainsKing(arr);
+			this.checkCoveredSquares(arr);
+			this.checkValidSquares(arr);
+			this.isLegalMove();
+			this.filterKingMoves();
+			this.filterCheckedMoves();
+		});
+
+	}
+	
+// =================================== OTHER METHOD ===================================
 		
 	public void clearMoves() {
 		this.deHighlightMoves();
@@ -105,8 +158,14 @@ public abstract class Piece {
 		});
 	}
 	
-	public abstract void findMoves(Square current);
+	public boolean isOpponentPiece(Square sq) {				
+		if (this.getOwner().isLightPieces() != sq.getPiece().getOwner().isLightPieces()) return true;
+		return false;
+	}
+	
+	
 
+// =================================== VALIDATION METHOD ===================================
 	
 /*
  * CHECK IF LINE CONTAINS OPPONENT KING
@@ -245,21 +304,5 @@ public abstract class Piece {
 				this.validSquares.clear();
 			}
 		}
-	}
-	
-/*
- * Every turn, we validate the piece moves using the method below. Each connect to a separate method as described above.
- */
-	
-	public void validateMoves(ArrayDeque<ArrayDeque<Square>> array) {
-		array.forEach(arr -> {
-			this.lineContainsKing(arr);
-			this.checkCoveredSquares(arr);
-			this.checkValidSquares(arr);
-			this.isLegalMove();
-			this.filterKingMoves();
-			this.filterCheckedMoves();
-		});
-
 	}
 }

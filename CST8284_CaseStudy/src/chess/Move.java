@@ -8,153 +8,152 @@ import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
 
 import chess.pieces.King;
 import chess.pieces.Knight;
 import chess.pieces.Pawn;
 import chess.pieces.Piece;
-import gui.Board;
 import gui.GameOver;
 
 public class Move {
 	private final String RANK = "abcdefgh";
 	private final Color HIGHLIGHT = new Color(255, 240, 190);
+	
 	private String special = "";
 	private Square last, current;
 	private Piece lastPiece, currentPiece;
 	private String coord;
 	
+// =================================== CONSTRUCTOR ===================================
+	
 	Move(final Square last, final Square current) {
+		
 		this.last = last;
 		this.current = current;
 		this.lastPiece = this.last.getPiece();
 		this.currentPiece = this.current.getPiece();
 		
-		if (this.lastPiece instanceof Pawn && ((Pawn) this.lastPiece).isSecondMove()) {((Pawn) this.lastPiece).setSecondMove(false);}
-		if (this.lastPiece.isFirstMove()) {		
-			this.lastPiece.notFirstMove();
-			if (this.lastPiece instanceof Pawn) {((Pawn) this.lastPiece).setSecondMove(true);}
-		}
+		// Handle if it's first move.		
+		this.lastPiece.handleFirstMove();
 		
 		// If player is in check
-		if (this.lastPiece.getOwner().isKingChecked() && !(this.lastPiece instanceof King)) {
-			this.lastPiece.getOwner().setChecked(false);
-			this.lastPiece.getOwner().getAttackingPieces().clear();
-			Square kingSquare = null;
-			for (Piece p : this.lastPiece.getOwner().getPlayerPieces().keySet()) {
-				if (p instanceof King) {
-					kingSquare = this.lastPiece.getOwner().getPlayerPieces().get(p);
-					break;
-				}
-			}
-			kingSquare.setCurrentBGColour(kingSquare.getOriginalBGColour());
-			kingSquare.getBtn().setBackground(kingSquare.getCurrentBGColour());
-		}
+		this.handleRemoveKingCheck();
 		
 		// If this is a pawn		
 		if (this.lastPiece instanceof Pawn) {
-			
-			// If En Passant		
-			if (((Pawn) this.lastPiece).getEnPassant() != null) {
-				if (this.current.getY() != this.last.getY()) {
-					((Pawn) this.lastPiece).getEnPassant().getPiece().setCaptured(((Pawn) this.lastPiece).getEnPassant().getPiece(), true);
-					this.setRankAndFile(RANK.charAt(this.last.getY())+"x", null);
-					((Pawn) this.lastPiece).getEnPassant().setPiece(null);
-				}
-				((Pawn) this.lastPiece).setEnPassant(null);
-				finishMove(this.lastPiece);
+			// Handle En Passant Moves
+			boolean enPassant = ((Pawn) this.lastPiece).handleEnPassantMove(this);
+			if (enPassant) {
+				this.finishMove(this.lastPiece);
 				return;
 			}
 			
-			// If Promotion		
-			if ((!((Pawn) this.lastPiece).getTopDown() && this.current.getX() == 0) || (((Pawn) this.lastPiece).getTopDown() && this.current.getX() == 7)) {
-				JOptionPane.showOptionDialog(null, null, null, JOptionPane.PLAIN_MESSAGE, JOptionPane.PLAIN_MESSAGE, null, ((Pawn) this.lastPiece).getPromotionOptions(), null);
-				if (((Pawn) this.lastPiece).getPromotionPiece() == null) return;
-				
-				if (this.currentPiece != null && this.currentPiece.getOwner().isLightPieces() != this.lastPiece.getOwner().isLightPieces()) {
-					this.currentPiece.setCaptured(this.currentPiece, true);
-					this.special = (Main.getBoardDirection()) ? RANK.charAt(this.last.getY())+"x" : RANK.charAt(7-this.last.getY())+"x";
-				}
-				
-				this.setRankAndFile(this.special, "="+((Pawn)this.lastPiece).getPromotionPiece().getName());
-				this.lastPiece.getOwner().calculatePoints(((Pawn) this.lastPiece).getPromotionPiece().getPointValue());
-				this.lastPiece.getOwner().getPlayerPieces().remove(this.lastPiece);
-				this.lastPiece.getOwner().getPlayerPieces().put(((Pawn) this.lastPiece).getPromotionPiece(), this.last);
-				finishMove(((Pawn) this.lastPiece).getPromotionPiece());
+			// Handle Promotion		
+			boolean pawnPromotion = ((Pawn) this.lastPiece).handlePawnPromotion(this);
+			if (pawnPromotion) {
+				this.finishMove(((Pawn) this.lastPiece).getPromotionPiece());
 				return;
 			}
 			
 			// If capture with pawn -- Not en Passant and not promotion
-			if (this.currentPiece != null && this.currentPiece.getOwner().isLightPieces() != this.lastPiece.getOwner().isLightPieces()) {
-				this.currentPiece.setCaptured(this.currentPiece, true);
-				this.special = (Main.getBoardDirection()) ? RANK.charAt(this.last.getY())+"x" : RANK.charAt(7-this.last.getY())+"x";
-			}
+			this.lastPiece.handleCapture(this);
 			
 			this.setRankAndFile(this.special, null);
-			finishMove(this.lastPiece);
+			this.finishMove(this.lastPiece);
 			return;
 		}
 		
 		// If regular piece captures
-		if (this.currentPiece != null && this.currentPiece.getOwner().isLightPieces() != this.lastPiece.getOwner().isLightPieces()) {
-			this.currentPiece.setCaptured(this.currentPiece, true);
-			this.special = "x";
-		}
-		
+		this.lastPiece.handleCapture(this);
 		this.setRankAndFile(this.lastPiece.getName()+this.special, null);
 		
 		// If this is a king
 		if (this.lastPiece instanceof King) {
-			this.lastPiece.getOwner().setChecked(false);
-			this.lastPiece.getOwner().getOpponent().getCoveredLines().clear();
-			this.lastPiece.getOwner().getAttackingPieces().clear();
 			// If it's a left castling move			
 			if (((King) this.lastPiece).leftCastlePossible() && this.last.getY()-this.current.getY() == 2) {
-				Board.getSquare(this.current.getX(), this.current.getY()+1).setPiece(((King) this.lastPiece).getLeftCastlingRook().getPiece());
-				this.lastPiece.getOwner().getPlayerPieces().replace(((King) this.lastPiece).getLeftCastlingRook().getPiece(), Board.getSquare(this.current.getX(), this.current.getY()+1));
-				this.coord = (Main.getBoardDirection()) ? "O-O-O" : "O-O";
-				((King) this.lastPiece).getLeftCastlingRook().setPiece(null);
-			
+				((King) this.lastPiece).handleCastlingMove(this, ((King) this.lastPiece).getLeftCastlingRook(), this.getCurrent().getY()+1, Main.getBoardReversed());
+				this.coord = (Main.getBoardReversed()) ? "O-O-O" : "O-O";
+				
 			// If it's a right castling move
 			} else if (((King) this.lastPiece).rightCastlePossible() && this.last.getY()-this.current.getY() == -2) {
-				Board.getSquare(this.current.getX(), this.current.getY()-1).setPiece(((King) this.lastPiece).getRightCastlingRook().getPiece());
-				this.lastPiece.getOwner().getPlayerPieces().replace(((King) this.lastPiece).getRightCastlingRook().getPiece(), Board.getSquare(this.current.getX(), this.current.getY()-1));
-				this.coord = (Main.getBoardDirection()) ? "O-O" : "O-O-O";
-				((King) this.lastPiece).getRightCastlingRook().setPiece(null);
+				((King) this.lastPiece).handleCastlingMove(this, ((King) this.lastPiece).getRightCastlingRook(), this.getCurrent().getY()-1, Main.getBoardReversed());
+				this.coord = (Main.getBoardReversed()) ? "O-O" : "O-O-O";
 			}
 			((King) this.lastPiece).notCastlingMove();
 		}
 		
-		finishMove(this.lastPiece);
+		this.finishMove(this.lastPiece);
 		
 	}
 	
-	public Square getLast() {return this.last;}
-	public Square getCurrent() {return this.current;}
+// =================================== GETTER METHODS ===================================
+	
 	public Piece getCurrentPiece() {return this.currentPiece;}
 	public String getCoord() {return this.coord;}
+	public Square getLast() {return this.last;}
+	public Square getCurrent() {return this.current;}
+	public Color getHIGHLIGHT() {return this.HIGHLIGHT;}
+	public String getRank() {return this.RANK;}
+	public String getSpecial() {return this.special;}
 	
-	private void setRankAndFile(String special, String last) {
+
+// =================================== SETTER METHODS ===================================
+
+
+	public void setRankAndFile(String special, String last) {
 		if (special == null) special = "";
 		if (last == null) last = "";
-		this.coord = (Main.getBoardDirection()) ? special+RANK.charAt(this.current.getY())+(8-this.current.getX())+last : special+RANK.charAt(7-this.current.getY())+(this.current.getX()+1)+last;
+		this.coord = (Main.getBoardReversed()) ? special+RANK.charAt(this.current.getY())+(8-this.current.getX())+last : special+RANK.charAt(7-this.current.getY())+(this.current.getX()+1)+last;
 	}
 	
-	public void revertTileColours() {
-		this.last.setCurrentBGColour(this.last.getOriginalBGColour());
-		this.last.getBtn().setBackground(this.last.getOriginalBGColour());
-		this.current.setCurrentBGColour(this.current.getOriginalBGColour());
-		this.current.getBtn().setBackground(this.current.getOriginalBGColour());
+	public void setSpecial(String string) {
+		this.special = string;
 	}
 	
-	public void setTileColours() {
-		this.last.setCurrentBGColour(this.HIGHLIGHT);
-		this.last.getBtn().setBackground(this.last.getCurrentBGColour());
-		this.current.setCurrentBGColour(this.HIGHLIGHT);
-		this.current.getBtn().setBackground(this.current.getCurrentBGColour());
+	public void setCoordinate(String string) {
+		this.coord = string;
 	}
 	
+
+// =================================== FINISH MOVE METHOD ===================================
+
+	public void finishMove(Piece piece) {
+		
+		// Move piece to new spot
+		this.current.setPiece(piece);
+		this.currentPiece = this.current.getPiece();
+		
+		// If this piece had a covered line and moved, then remove it.
+		if (this.currentPiece.getOwner().getCoveredLines().containsKey(this.currentPiece)) this.currentPiece.getOwner().getCoveredLines().remove(this.currentPiece);
+		// Remove the last square's piece.		
+		this.last.setPiece(null);
+		this.lastPiece = this.last.getPiece();
+		
+		// Update PlayerPieces square and refresh the player moves.
+		this.currentPiece.getOwner().getPlayerPieces().replace(this.currentPiece, this.current);
+		this.currentPiece.getOwner().refreshMoves();
+		
+		// Verify if this puts the opponent's king in check
+		this.opponentKingChecked();
+		
+		// Update the opponent's valid moves
+		this.currentPiece.getOwner().getOpponent().refreshMoves();
+		
+		// Verify if game is checkmate or stalemate
+		boolean staleOrMate = this.verifyGameOutcome(Main.getGameOverPopUp());
+		
+		// Update Move Panel text
+		Main.getMovePanel().updateLastMove(this);
+		
+		// Check if the game is a draw
+		boolean draw = this.verifyDraw(Main.getGameOverPopUp());
+		
+		// If the game is over, then show the game pop up.
+		if (staleOrMate || draw) Main.getGameOverPopUp().handleGameOver();
+	}
+
+	
+
 // =================================== HANDLER METHODS ===================================
 	
 /*
@@ -251,10 +250,16 @@ public class Move {
 		
 		// If same moves 3 times, then draw.
 		if (Main.getMovePanel().getMoves().size() > 9) {
-			ArrayDeque<String> clone = Main.getMovePanel().getMoves().clone();
 			HashSet<String> temp = new HashSet<String>();
-			clone.pollFirst();
-			temp.addAll(clone);
+			
+			int counter = 0;
+			
+			for (String el : Main.getMovePanel().getMoves().reversed()) {
+				if (counter >= 9) break;
+				
+				temp.add(el);
+				counter++;
+			}
 			
 			if (temp.size() < 5) {
 				pane.setMessage("Draw by Repetition.");
@@ -266,38 +271,34 @@ public class Move {
 		return false;
 	}
 	
-// =================================== MAIN METHOD ===================================
-	
-	private void finishMove(Piece piece) {
-		final GameOver gameOver = new GameOver();
+/*
+ * HANDLE IF WE NEED TO REMOVE THE CHECK FROM PLAYER KING
+ * Will remove check if a piece moves in front of King or blocked check for a king.
+ * Then, remove checked square highlight for the King.
+ * 
+ * If the player moved the king, then we'll remove the attacker's line and remove the highlight for the king.
+ */
+
+	private void handleRemoveKingCheck() {
+		if (!this.lastPiece.getOwner().isKingChecked()) return;
 		
-		this.current.setPiece(piece);
-		this.currentPiece = this.current.getPiece();
-		
-		// If this piece had a covered line and moved, then remove it.
-		if (this.currentPiece.getOwner().getCoveredLines().containsKey(this.currentPiece)) this.currentPiece.getOwner().getCoveredLines().remove(this.currentPiece);
-		// Remove the last square's piece.		
-		this.last.setPiece(null);
-		this.lastPiece = this.last.getPiece();
-		
-		this.currentPiece.getOwner().getPlayerPieces().replace(this.currentPiece, this.current);
-		this.currentPiece.getOwner().refreshMoves();
-		
-		// Verify if this puts the opponent's king in check
-		this.opponentKingChecked();
-		
-		// Update the opponent's valid moves
-		this.currentPiece.getOwner().getOpponent().refreshMoves();
-		
-		// Verify if game is checkmate, stalemate, or draw
-		boolean staleOrMate = this.verifyGameOutcome(gameOver);
-		
-		// Update Move Panel text
-		Main.getMovePanel().updateLastMove(this);
-		
-		boolean draw = this.verifyDraw(gameOver);
-		
-		if (staleOrMate || draw) gameOver.handleGameOver();
+		this.lastPiece.getOwner().setChecked(false);
+		this.lastPiece.getOwner().getAttackingPieces().clear();
+		if (!(this.lastPiece instanceof King)) {
+			Square kingSquare = null;
+			for (Piece p : this.lastPiece.getOwner().getPlayerPieces().keySet()) {
+				if (p instanceof King) {
+					kingSquare = this.lastPiece.getOwner().getPlayerPieces().get(p);
+					break;
+				}
+			}
+			kingSquare.setCurrentBGColour(kingSquare.getOriginalBGColour());
+			kingSquare.getBtn().setBackground(kingSquare.getCurrentBGColour());	
+		} else {
+			this.lastPiece.getOwner().getOpponent().getCoveredLines().clear();
+			this.last.setCurrentBGColour(this.last.getOriginalBGColour());
+			this.last.getBtn().setBackground(this.last.getCurrentBGColour());	
+		}
 	}
-	
+
 }

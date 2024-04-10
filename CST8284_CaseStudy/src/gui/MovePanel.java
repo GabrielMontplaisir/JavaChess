@@ -32,6 +32,7 @@ public class MovePanel {
 // =================================== GETTER METHODS ===================================		
 	
 	public int getTurnCount() {return this.turnCount;}
+	public JPanel getPanel() {return this.panel;}
 	public Move getLastMove() {return this.lastMove;}
 	public ArrayDeque<String> getMoves() {return this.moves;}
 	
@@ -42,7 +43,7 @@ public class MovePanel {
  */
 	
 	public void setTurnCount(int count) {
-		this.turnCount += count;
+		this.turnCount = count;
 	}
 	
 /*
@@ -51,14 +52,17 @@ public class MovePanel {
  */
 	
 	public void setLastMove(Move move) {
-		if (this.lastMove != null) this.lastMove.revertTileColours();
+		if (this.lastMove != null) this.revertTileColours(this.lastMove);
 		
 		this.lastMove = move;
-		this.lastMove.setTileColours();
+		this.setTileColours(this.lastMove);
 	}
 
-// =================================== OTHER METHODS ===================================
+// =================================== PANEL UPDATE METHODS ===================================
 
+/*
+ * Every time it's the light pieces' turn, we'll add a new row to the panel.
+ */
 	private void addRowToPanel() {
 		this.cst.anchor = GridBagConstraints.PAGE_START;
 		this.cst.gridx = 0;
@@ -67,6 +71,10 @@ public class MovePanel {
 		this.cst.ipady = 10;
 		if (this.getTurnCount() > 0) this.panel.add(new JLabel(this.getTurnCount()+"."), cst);
 	}
+	
+/*
+ * Every time a piece moves, We'll create a new label to add to the panel. Called by updateLastMove()
+ */
 	
 	private void addMoveToPanel(String notation, boolean isLightPieces) {
 		JLabel label = new JLabel(notation);
@@ -78,12 +86,15 @@ public class MovePanel {
 		this.panel.add(label, this.cst);
 	}
 	
+/*
+ * Every time a piece moves, we'll add a new row if necessary, add a new label with the algebraic notation, then add it to the panel.6
+ */
 	public void updateLastMove(Move lastMove) {
 		// Sets last move and highlights board tiles.
 		this.setLastMove(lastMove);
 		
 		if (this.lastMove.getCurrentPiece().getOwner().isLightPieces()) {
-			this.setTurnCount(this.getTurnCount() + 1);
+			this.turnCount++;
 			this.addRowToPanel();
 		}
 		
@@ -91,8 +102,41 @@ public class MovePanel {
 		this.addMoveToPanel(this.lastMove.getCoord(), this.lastMove.getCurrentPiece().getOwner().isLightPieces());
 		
 		Main.swapTurns();
-		
-		
+	}
+	
+/*
+ * Resets the panel when a new game starts.
+ */
+	public void resetPanel() {
+		this.setTurnCount(0);
+		this.getPanel().removeAll();
+		this.getPanel().updateUI();
+		this.getMoves().clear();
+	}
+	
+
+// =================================== LAST MOVE UPDATE METHODS ===================================
+	
+/*
+ * Revert tile colour from a special colour to the checkered board tile
+ */
+	
+	private void revertTileColours(Move move) {
+		move.getLast().setCurrentBGColour(move.getLast().getOriginalBGColour());
+		move.getLast().getBtn().setBackground(move.getLast().getOriginalBGColour());
+		move.getCurrent().setCurrentBGColour(move.getCurrent().getOriginalBGColour());
+		move.getCurrent().getBtn().setBackground(move.getCurrent().getOriginalBGColour());
+	}
+	
+/*
+ * Highlight tile colour for last move
+ */
+	
+	private void setTileColours(Move move) {
+		move.getLast().setCurrentBGColour(move.getHIGHLIGHT());
+		move.getLast().getBtn().setBackground(move.getLast().getCurrentBGColour());
+		move.getCurrent().setCurrentBGColour(move.getHIGHLIGHT());
+		move.getCurrent().getBtn().setBackground(move.getCurrent().getCurrentBGColour());
 	}
 	
 }

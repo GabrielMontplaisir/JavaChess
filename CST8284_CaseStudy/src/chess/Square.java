@@ -8,13 +8,22 @@ import javax.swing.JButton;
 import chess.pieces.Piece;
 
 public class Square {
+	private final Color LIGHT_SQUARE = new Color(250, 250, 240);
+	private final Color DARK_SQUARE = new Color(115, 140, 80);
+	
 	private final int x, y;
 	private Piece piece;
 	private final JButton btn = new JButton();
 	private final Color originalBGColour;
 	private Color currentBGColour;
-	private final Color LIGHT_SQUARE = new Color(250, 250, 240);
-	private final Color DARK_SQUARE = new Color(115, 140, 80);
+
+	
+// =================================== CONSTRUCTOR ===================================
+	
+/*
+ * Sets the coordinates to the square, as well as the background.
+ * Adds a button which will set the selection when a player clicks on it.
+ */
 	
 	public Square(final int x, final int y) {
 		this.x = x;
@@ -33,6 +42,8 @@ public class Square {
 			Main.getCurrentPlayer().setSelection(this);
 		});
 	}
+	
+// =================================== GETTER METHODS ===================================	
 
 	public Piece getPiece() {return this.piece;}
 	public JButton getBtn() {return this.btn;}
@@ -41,12 +52,10 @@ public class Square {
 	public Color getOriginalBGColour() {return this.originalBGColour;}
 	public Color getCurrentBGColour() {return this.currentBGColour;}
 	
+// =================================== SETTER METHODS ===================================
+	
 	public void setCurrentBGColour(Color colour) {
 		this.currentBGColour = colour;
-	}
-	
-	public void removeCoveredSquares(Piece piece) {
-		
 	}
 	
 	public void setPiece(Piece piece) {

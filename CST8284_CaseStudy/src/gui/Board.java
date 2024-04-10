@@ -53,6 +53,8 @@ public class Board {
 		for (int i = 0; i < boardArray.length; i++) {
 			for (int j = 0; j < boardArray[i].length; j++) {
 				boardArray[i][j].setPiece(null);
+				boardArray[i][j].setCurrentBGColour(boardArray[i][j].getOriginalBGColour());
+				boardArray[i][j].getBtn().setBackground(boardArray[i][j].getOriginalBGColour());
 			}
 		}
 		
@@ -61,15 +63,25 @@ public class Board {
 		this.setupBoard(p1, isBoardReversed, 6, 7);
 	}
 		
+/*
+ * SETUP THE BOARD for the players
+ * Remove all pieces for the player, and sets a fresh set of pieces.
+ */
 	
 	private void setupBoard(final Player player, boolean isBoardReversed, int pawnX, int pieceX) {
 		
-		// Removes all pieces from the player
+		// Resets all Arrays
 		player.getPlayerPieces().clear();
+		player.getAttackingPieces().clear();
+		player.getCoveredLines().clear();
+		player.getCollectiveMoves().clear();
 		
 		// Add pawns
 		for (int i = 0; i < boardArray.length; i++) {
-			boardArray[pawnX][i].setPiece(new Pawn(player, true));
+			if (pawnX == 1) boardArray[pawnX][i].setPiece(new Pawn(player, true));
+			else {
+				boardArray[pawnX][i].setPiece(new Pawn(player, false));
+			}
 		}
 		
 		// Add pieces

@@ -2,6 +2,8 @@ package gui;
 
 import javax.swing.JOptionPane;
 
+import chess.Main;
+
 public class GameOver extends JOptionPane {
 	private static final long serialVersionUID = 1L;
 	
@@ -17,7 +19,7 @@ public class GameOver extends JOptionPane {
 		int choice = JOptionPane.showOptionDialog(null, this.getMessage(), "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, this.getIcon(), options, null);
 		
 		if (choice == JOptionPane.YES_OPTION) {
-			System.out.println("Clicked new game");
+			Main.setupGame(Main.getBoard());
 		} else if (choice == JOptionPane.NO_OPTION) {
 			System.exit(0);
 		}

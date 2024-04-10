@@ -6,14 +6,17 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import gui.Board;
+import gui.GameOver;
 import gui.Menu;
 import gui.MovePanel;
 
 public class Main {
 	private final static JPanel gui = new JPanel(new BorderLayout());
+	private final static Board board = new Board(gui);
+	private final static GameOver gameOver = new GameOver();
 	private final static MovePanel movePanel = new MovePanel(gui);
-	private final Player p1 = new Player();
-	private final Player p2 = new Player();
+	private final static Player p1 = new Player();
+	private final static Player p2 = new Player();
 	private static Player currentPlayer;
 	private static boolean boardReversed;
 	
@@ -23,23 +26,23 @@ public class Main {
 		// Main Container Settings
 		gui.setBorder(new EmptyBorder(10,20,20,20));
 		
-		this.p1.setOpponent(p2);
-		this.p2.setOpponent(p1);
+		p1.setOpponent(p2);
+		p2.setOpponent(p1);
 		
-		this.p1.getPlayerBox().addToGUI(gui, BorderLayout.PAGE_END);
-		this.p2.getPlayerBox().addToGUI(gui, BorderLayout.PAGE_START);
-		
-		final Board board = new Board(gui);
+		p1.getPlayerBox().addToGUI(gui, BorderLayout.PAGE_END);
+		p2.getPlayerBox().addToGUI(gui, BorderLayout.PAGE_START);
 		
 		// Setup game
-		this.setupGame(board);
+		setupGame(board);
 	}
 	
 // =================================== GETTER METHODS ===================================	
 	
-	public static boolean getBoardDirection() {return boardReversed;}
+	public static boolean getBoardReversed() {return boardReversed;}
 	public static Player getCurrentPlayer() {return currentPlayer;}
 	public static MovePanel getMovePanel() {return movePanel;}
+	public static Board getBoard() {return board;}
+	public static GameOver getGameOverPopUp() {return gameOver;}
 	
 	
 // =================================== SETTER METHODS ===================================
@@ -48,8 +51,8 @@ public class Main {
 		currentPlayer = player;
 	}
 	
-	private void setBoardReversed(boolean isReversed) {
-		this.boardReversed = isReversed;
+	private static void setBoardReversed(boolean isReversed) {
+		boardReversed = isReversed;
 	}
 	
 // =================================== OTHER METHODS ===================================
@@ -60,21 +63,21 @@ public class Main {
  *  
  */
 	
-	private void setupGame(Board board) {
-		movePanel.setTurnCount(0);
+	public static void setupGame(Board board) {
+		movePanel.resetPanel();
 		
 		if (Math.random() >= 0.5) {
 			setCurrentPlayer(p1);
-			this.setBoardReversed(true);
+			setBoardReversed(true);
 		} else {
 			setCurrentPlayer(p2);
-			this.setBoardReversed(false);
+			setBoardReversed(false);
 		}
 		
-		currentPlayer.setLightPieces(true);
-		currentPlayer.setPlayerTurn(true);
+		currentPlayer.setupPlayer(true);
+		currentPlayer.getOpponent().setupPlayer(false);
 		
-		board.resetBoard(p1, p2, this.getBoardDirection());
+		board.resetBoard(p1, p2, getBoardReversed());
 	}
 	
 	
@@ -97,6 +100,7 @@ public class Main {
 // =================================== MAIN METHOD ===================================	
 	
 	public static void main(String[] args) {
+		new Main();
 		// Create window and add window menu
 		final JFrame main = new JFrame("CST8284 Chess by Gabriel Montplaisir -- 041125807");
 		new Menu(main);
