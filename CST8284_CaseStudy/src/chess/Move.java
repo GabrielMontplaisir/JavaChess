@@ -32,9 +32,13 @@ public class Move {
 	
 // =================================== CONSTRUCTOR ===================================
 	
+	// During a regular game, we look at the previous square and the current square to handle the move.
+	
 	Move(final Square last, final Square current) {
 		this.handleMove(last, current);
 	}
+	
+	// This method is used for loading games. It will parse the notation from the save file to recreate the moves.
 	
 	public Move(String notation) {
 			this.parseNotation(notation);
@@ -348,10 +352,34 @@ public class Move {
 	
 // =================================== PARSING METHODS ===================================
 	
+/*
+ * This method parses the algebraic notation from the "PGN" save file using RegEx.
+ * We have three "handlers". One for pawns, another for regular pieces, and a last one for castling.
+ * We don't have to re-invent the wheel here. We calculate the appropriate position of the piece based on the notation, then find the according piece, check if it's movement is part of its' valid moves, then run it through the rest of the Move Class.
+ */
+	
 	private void parseNotation(String coord) {
+		// Declare some int variables: OriginalRank, RankCharAt, FileChartAt, Disambiguation (set to -1 to simulate "null"), fileIndex, rankIndex and yMatch.
 		int or, rca, fca, dis = -1, fileIndex, rankIndex, yMatch;
-		// If it's a pawn
+		
+/*
+ * IF IT'S A PAWN...
+ * Check he different possible notations possible for pawns, then find it based on the player's pieces.
+ * Possible notations:
+ * regular movement (e4, d4)
+ * Captures & En Passant (exd4, dxc3)
+ * Promotions (e1=Q)
+ * Promotion Captures (cxb8=R)
+ * 
+ * All of the above with checks or mates.
+ */
+		
 		if (coord.matches("^[a-h](x[a-h])?[1-8](=[QRBN])?[+#]?$")) {
+			
+			// This section finds the numerical X and Y value of the current piece's square. 
+			// Shift characters if the notation includes a capture.
+			// We have to take into account whether the board is reversed (as the notation is always based on the bottom left corner on the light pieces side).
+			
 			if (coord.charAt(1) == 'x') {
 				or = (Main.getBoardReversed()) ? this.getRank().indexOf(coord.charAt(0)) : this.getRankReversed().indexOf(coord.charAt(0));
 				rca = (Main.getBoardReversed()) ? this.getRank().indexOf(coord.charAt(2)) : this.getRankReversed().indexOf(coord.charAt(2));
@@ -366,9 +394,15 @@ public class Move {
 			rankIndex = rca;
 			fileIndex = (Main.getBoardReversed()) ? 8 - fca : fca - 1;
 			
+			// Iterate through the player pieces.
+			// If there's a piece along the rank, find out whether the X and Y match it's valid squares. If it does, then we'll run through handleMove(), using it's current Square, and the fileIndex / rankIndex.
+			
 			for (Piece p : Main.getCurrentPlayer().getPlayerPieces().keySet()) {
 				if (p instanceof Pawn && Main.getCurrentPlayer().getPlayerPieces().get(p).getY() == yMatch) {
 					if (p.getValidSquares().contains(Board.getSquare(fileIndex, rankIndex))) {
+						
+						// If there's an equal sign in the notation, we know there's also a promotion. We toggle a boolean "setPromotionPieceSet" to true to ignore the pop-up that would normally show up.
+						
 						if (coord.indexOf('=') != -1) {
 							int equalSignPos = coord.indexOf('=');
 							switch(coord.charAt(equalSignPos+1)) {
@@ -395,8 +429,25 @@ public class Move {
 			}
 		}
 		
+/*
+ * IF IT'S NOT A PAWN...
+ * 
+ * Check he different possible notations possible for pieces, then find it based on the player's pieces.
+ * Possible notations:
+ * regular movement (Qe4, Ra5)
+ * Captures (Bxf3, Nxh7)
+ * Disambiguous moves (Rae3, Nbd4)
+ * 
+ * All of the above with checks or mates.
+ */
+		
 		if (coord.matches("^[QKBNR][a-h]?[x]?[a-h][1-8][+#]?$")) {
 			boolean moveHandled = false;
+			
+			// This section finds the numerical X and Y value of the current piece's square. 
+			// Shift characters if the notation includes a capture.
+			// We have to take into account whether the board is reversed (as the notation is always based on the bottom left corner on the light pieces side).
+			// An additional check is made to check whether there's an ambiguous move (marked by the first a-h value after the piece). If this is the case, we also have to shift where we look for the current square's position.
 			
 			if ((coord.indexOf('x') == -1 && Character.isLetter(coord.charAt(1)) && Character.isLetter(coord.charAt(2))) || (coord.indexOf('x') != -1 && coord.charAt(1) != 'x')) {
 				dis = (Main.getBoardReversed()) ? this.getRank().indexOf(coord.charAt(1)) : this.getRankReversed().indexOf(coord.charAt(1));
@@ -416,6 +467,14 @@ public class Move {
 			
 			fileIndex = (Main.getBoardReversed()) ? 8 - fca : fca - 1;
 			rankIndex = rca;
+			
+			
+			// Iterate through the player pieces.
+			// If there's a piece along the rank, find out whether the X and Y match it's valid squares. If it does, then we'll run through handleMove(), using it's current Square, and the fileIndex / rankIndex.
+			// As most pieces behave the same way (Queens, Kings, Bishops, Knights and Rooks), we don't need to create different handlers for all.
+			// We have an additional check here for ambiguous moves. When the notation has disambiguity, then we know we're only looking for the relevant type of pieces. Then we only look for those kinds of pieces.
+			
+			
 			for (Piece p : Main.getCurrentPlayer().getPlayerPieces().keySet()) {
 				if (dis != -1 && Main.getCurrentPlayer().getPlayerPieces().get(p).getY() != dis) {
 					continue;
@@ -457,8 +516,25 @@ public class Move {
 			}
 		}
 		
+		
+/*
+ * CHECK FOR CASTLING
+ * 
+ * This is a special type of notation, hence requires it's own kind of handler.
+ * 
+ * Possible notations:
+ * Short Castle (O-O)
+ * Long Castle (O-O-O)
+ * 
+ * All of the above with checks or mates.
+ */	
+		
 		if (coord.matches("^O-O(-O)?[+#]?$")) {
 			for (Piece p : Main.getCurrentPlayer().getPlayerPieces().keySet()) {
+				
+				// Find the player's king. Then, we have to check whether the board is reversed, AND whether it's a long castle or short castle.
+				// Then, check the appropriate squares to ensure that the King's valid squares contain those squares. If they do, then make the move.
+				
 				if (p instanceof King) {
 					Square kingSquare = Main.getCurrentPlayer().getPlayerPieces().get(p);
 					int yDir;
