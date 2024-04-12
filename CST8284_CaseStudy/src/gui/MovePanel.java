@@ -82,7 +82,7 @@ public class MovePanel {
 		this.cst.ipadx = 50;
 		this.cst.gridy = this.getTurnCount();
 		this.cst.ipady = 10;
-		this.cst.anchor = GridBagConstraints.BASELINE_LEADING;
+		this.cst.anchor = GridBagConstraints.NORTH;
 		this.panel.add(label, this.cst);
 	}
 	

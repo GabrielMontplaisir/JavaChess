@@ -33,7 +33,7 @@ public class Main {
 		p2.getPlayerBox().addToGUI(gui, BorderLayout.PAGE_START);
 		
 		// Setup game
-		setupGame(board);
+		setupNewGame(board);
 	}
 	
 // =================================== GETTER METHODS ===================================	
@@ -43,6 +43,8 @@ public class Main {
 	public static MovePanel getMovePanel() {return movePanel;}
 	public static Board getBoard() {return board;}
 	public static GameOver getGameOverPopUp() {return gameOver;}
+	public static Player getP1() {return p1;}
+	public static Player getP2() {return p2;}
 	
 	
 // =================================== SETTER METHODS ===================================
@@ -51,7 +53,7 @@ public class Main {
 		currentPlayer = player;
 	}
 	
-	private static void setBoardReversed(boolean isReversed) {
+	public static void setBoardReversed(boolean isReversed) {
 		boardReversed = isReversed;
 	}
 	
@@ -63,7 +65,7 @@ public class Main {
  *  
  */
 	
-	public static void setupGame(Board board) {
+	public static void setupNewGame(Board board) {
 		movePanel.resetPanel();
 		
 		if (Math.random() >= 0.5) {
@@ -74,6 +76,23 @@ public class Main {
 			setBoardReversed(false);
 		}
 		
+		currentPlayer.setupPlayer(true);
+		currentPlayer.getOpponent().setupPlayer(false);
+		
+		board.resetBoard(p1, p2, getBoardReversed());
+	}
+	
+/*
+ * LOAD SETUP
+ * If we load a game from the file chooser, we're going to set up a new board but won't set random colours.
+ * We'll base ourselves from the PGN file.
+ *  
+ */
+	
+	public static void setupLoadedGame(Board board, Player lightPlayer) {
+		movePanel.resetPanel();	
+		
+		setCurrentPlayer(lightPlayer);
 		currentPlayer.setupPlayer(true);
 		currentPlayer.getOpponent().setupPlayer(false);
 		

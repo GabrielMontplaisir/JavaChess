@@ -137,16 +137,8 @@ public class Player {
 		
 		// If new selection is a piece
 		if (this.selection.getPiece() != null && Main.getCurrentPlayer().isLightPieces() == this.selection.getPiece().getOwner().isLightPieces()) {
-//			System.out.println(this.selection);
-//			if (this.selection.getPiece() != null) System.out.println(this.selection.getPiece().getOwner().getCoveredLines());
-//			if (this.selection.getPiece() != null) System.out.println(this.selection.getPiece().getPossibleMoves());
-//			if (this.selection.getPiece() != null) System.out.println(this.selection.getPiece().getValidSquares());
 			this.selection.getPiece().highlightMoves();				
 		} 
-//		else {
-//			System.out.println(this.selection);
-//			if (this.selection.getPiece() != null) System.out.println(this.selection.getPiece().getOwner().getCoveredLines());
-//		}
 	}
 	
 }

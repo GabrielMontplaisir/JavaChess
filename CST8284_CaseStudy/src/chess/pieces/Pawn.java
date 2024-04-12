@@ -95,6 +95,10 @@ public final class Pawn extends Piece {
 		this.secondMove = isSecond;
 	}
 	
+	public void setPromotionPiece(Piece piece) {
+		this.promotionPiece = piece;
+	}
+	
 // =================================== OVERRIDE METHODS ===================================
 	
 	@Override
@@ -185,7 +189,12 @@ public final class Pawn extends Piece {
 		
 		if (move.getCurrent().getY() != move.getLast().getY() && Board.getSquare(move.getCurrent().getX(), move.getCurrent().getY()).getPiece() == null) {
 			this.getEnPassant().getPiece().setCaptured(this.getEnPassant().getPiece(), true);
-			move.setRankAndFile(move.getRank().charAt(move.getLast().getY())+"x", null);
+			if (Main.getBoardReversed()) {
+				move.setRankAndFile(move.getRank().charAt(move.getLast().getY())+"x", null);
+			} else {
+				move.setRankAndFile(move.getRank().charAt(7-move.getLast().getY())+"x", null);
+			}
+			
 			this.getEnPassant().setPiece(null);
 			
 			this.setEnPassant(null);
@@ -206,15 +215,17 @@ public final class Pawn extends Piece {
 	public boolean handlePawnPromotion(Move move) {
 		if ((!this.getTopDown() && move.getCurrent().getX() != 0) || (this.getTopDown() && move.getCurrent().getX() != 7)) return false;
 			
+		if (!move.getPromotionPieceSet()) {
 			JOptionPane.showOptionDialog(null, null, null, JOptionPane.PLAIN_MESSAGE, JOptionPane.PLAIN_MESSAGE, null, this.getPromotionOptions(), null);
 			if (this.getPromotionPiece() == null) return handlePawnPromotion(move);
-			
-			this.handleCapture(move);
-			
-			move.setRankAndFile(move.getSpecial(), "="+this.getPromotionPiece().getName());
-			this.getOwner().calculatePoints(this.getPromotionPiece().getPointValue());
-			this.getOwner().getPlayerPieces().remove(this);
-			this.getOwner().getPlayerPieces().put(this.getPromotionPiece(), move.getLast());
-			return true;
+		}
+		
+		this.handleCapture(move);
+		
+		move.setRankAndFile(move.getSpecial(), "="+this.getPromotionPiece().getName());
+		this.getOwner().calculatePoints(this.getPromotionPiece().getPointValue());
+		this.getOwner().getPlayerPieces().remove(this);
+		this.getOwner().getPlayerPieces().put(this.getPromotionPiece(), move.getLast());
+		return true;
 	}	
 }

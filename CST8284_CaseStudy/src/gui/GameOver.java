@@ -19,7 +19,7 @@ public class GameOver extends JOptionPane {
 		int choice = JOptionPane.showOptionDialog(null, this.getMessage(), "Game Over", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, this.getIcon(), options, null);
 		
 		if (choice == JOptionPane.YES_OPTION) {
-			Main.setupGame(Main.getBoard());
+			Main.setupNewGame(Main.getBoard());
 		} else if (choice == JOptionPane.NO_OPTION) {
 			System.exit(0);
 		}
