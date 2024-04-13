@@ -87,7 +87,7 @@ public class MovePanel {
 	}
 	
 /*
- * Every time a piece moves, we'll add a new row if necessary, add a new label with the algebraic notation, then add it to the panel.6
+ * Every time a piece moves, we'll add a new row if necessary, add a new label with the algebraic notation, then add it to the panel.
  */
 	public void updateLastMove(Move lastMove) {
 		// Sets last move and highlights board tiles.

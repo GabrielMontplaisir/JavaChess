@@ -143,6 +143,8 @@ public class Menu {
 			String line;
 			ArrayDeque<String> moveSet = null;
 			
+			if (!file.getName().endsWith(".txt")) JOptionPane.showMessageDialog(this.frame, "Error loading game. Invalid type or contains invalid moves.", "Error loading game.", JOptionPane.ERROR_MESSAGE);;
+			
 			
 			// Start a new game
 			
