@@ -1,7 +1,7 @@
 # Java Chess
 By Gabriel Montplaisir
 
-This is the final assignment for my a course at Algonquin College. It incorporates a full GUI using Java Swing, as well as the following features:
+Incorporates a full GUI using Java Swing, as well as the following features:
 
 - An option to start a "New Game"
 - Saving a game as .txt file using PGN format. You can then load this into any online chess PGN viewer.
